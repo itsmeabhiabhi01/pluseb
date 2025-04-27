@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Phone Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet"/>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background: linear-gradient(to right, #004d4d, #004d4d);
+        }
+        .plus-button {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #1e90ff;
+            color: #fff;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+            z-index: 1002;
+            transition: all 0.3s ease;
+        }
+        .plus-button:hover {
+            transform: scale(1.2);
+            background: #1e90ff;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+        }
+        .phone-wrap {
+            position: fixed;
+            top: 50%;
+            right: -360px;
+            transform: translateY(-50%);
+            width: 340px;
+            height: 700px;
+            transition: right 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 1001;
+        }
+        .phone-wrap.active {
+            right: 20px;
+        }
+        .phone {
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            border-radius: 60px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+            border: 8px solid #FFFFFF;
+        }
+        .time-widget {
+            padding: 15px;
+            text-align: center;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            margin: 10px;
+        }
+        .time {
+            font-size: 50px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .ampm {
+            font-size: 20px;
+            margin-left: 5px;
+        }
+        .date {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .phone-screen {
+            width: 100%;
+            height: calc(100% - 110px);
+            background: #000;
+            color: #fff;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-content: flex-start;
+            overflow-y: auto;
+        }
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            background: #333;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .app-icon:hover {
+            transform: scale(1.1);
+        }
+        .app-icon i {
+            font-size: 24px;
+        }
+        .app-icon span {
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .app-icon svg {
+            width: 40px;
+            height: 40px;
+        }
+        .app-icon img {
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Plus Button -->
+    <button class="plus-button" id="plus-button"><i class="fas fa-plus"></i></button>
+
+    <!-- Phone Interface -->
+    <div class="phone-wrap" id="phone-wrap">
+        <div class="phone">
+            <div class="time-widget" id="time-widget">
+                <div class="time" id="time-display">00:00 <span class="ampm" id="ampm">AM</span></div>
+                <div class="date" id="date-widget">January 1, 2025</div>
+            </div>
+            <div class="phone-screen" id="phone-screen"></div>
+        </div>
+    </div>
+
+    <script>
+        const plusButton = document.getElementById('plus-button');
+        const phoneWrap = document.getElementById('phone-wrap');
+        const timeWidget = document.getElementById('time-widget');
+        const phoneScreen = document.getElementById('phone-screen');
+
+        // Toggle Phone Interface
+        plusButton.addEventListener('click', () => {
+            phoneWrap.classList.toggle('active');
+            plusButton.style.display = phoneWrap.classList.contains('active') ? 'none' : 'flex';
+            timeWidget.style.display = phoneWrap.classList.contains('active') ? 'block' : 'none';
+            if (phoneWrap.classList.contains('active')) {
+                loadApps();
+            } else {
+                phoneScreen.innerHTML = ''; // Clear apps when closing
+            }
+        });
+
+        // Time Widget
+        function updateTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            document.getElementById('time-display').innerHTML = `${hours}:${minutes} <span class="ampm">${ampm}</span>`;
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('date-widget').innerText = now.toLocaleDateString('en-US', options);
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Fetch and Display Apps from phone.html
+        async function loadApps() {
+            try {
+                const response = await fetch('phone.html');
+                if (!response.ok) {
+                    console.error('Failed to fetch phone.html:', response.status);
+                    phoneScreen.innerHTML = '';
+                    return;
+                }
+                const data = await response.text();
+
+                // Clear previous content
+                phoneScreen.innerHTML = '';
+
+                // Parse apps from phone.html
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                const appItems = doc.querySelectorAll('#app-grid .app-item');
+
+                const apps = [];
+                appItems.forEach(item => {
+                    const appIcon = item.querySelector('.app-icon');
+                    const appTitle = item.querySelector('.app-title').textContent.trim();
+                    let iconContent = '';
+                    let url = appIcon.getAttribute('onclick')?.match(/window\.open\(['"]([^'"]+)['"]/i)?.[1] || '#';
+
+                    // Check if app icon uses background-image (URL)
+                    const bgImage = appIcon.style.backgroundImage;
+                    if (bgImage && bgImage.includes('url(')) {
+                        const imageUrl = bgImage.replace(/^url\(['"](.*)['"]\)$/, '$1');
+                        iconContent = `<img src="${imageUrl}" alt="${appTitle}" />`;
+                    } else {
+                        // Use SVG or fallback icon
+                        const svg = appIcon.querySelector('svg');
+                        if (svg) {
+                            iconContent = svg.outerHTML;
+                        } else {
+                            iconContent = `<i class="fas fa-question"></i>`;
+                        }
+                    }
+
+                    apps.push({
+                        name: appTitle,
+                        icon: iconContent,
+                        url: url
+                    });
+                });
+
+                // Display apps
+                apps.forEach(app => {
+                    const appDiv = document.createElement('div');
+                    appDiv.className = 'app-icon';
+                    appDiv.innerHTML = `
+                        ${app.icon}
+                        <span>${app.name}</span>
+                    `;
+                    if (app.url && app.url !== '#') {
+                        appDiv.addEventListener('click', () => {
+                            window.open(app.url, '_blank');
+                        });
+                    }
+                    phoneScreen.appendChild(appDiv);
+                });
+            } catch (error) {
+                console.error('Error loading apps:', error);
+                phoneScreen.innerHTML = ''; // Keep screen empty on error
+            }
+        }
+    </script>
+</body>
+</html>
